@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/style3.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+        integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://kit.fontawesome.com/yourcode.js" crossorigin="anonymous"></script>
+    <title>Home</title>
+    <link rel="stylesheet" href="/static/chatbot.css">
+    <link rel="stylesheet" href="/static/assets/css/chat.css">
+</head>
+
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <div class="container-fluid" style="margin: 0% 5%;">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="d-flex justify-content-between align-items-center w-100">
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 d-flex w-100">
+                    <li class="nav-item flex-fill">
+                        <a class="nav-link p-3 fs-7" aria-current="page" href="{{ url_for('alumni', role='alumni') }}">Home</a>
+                    </li>
+
+                    <li class="nav-item flex-fill">
+                        <a class="nav-link p-3 fs-7" href="/chat_alumni">Alumni Connect</a>
+                    </li>
+                
+                    <li class="nav-item flex-fill">
+                        <a class="nav-link p-3 fs-7" href="/faq_alumni" onclick="scrollSection('FAQ')">FAQ</a>
+                    </li>
+                
+                    <li class="nav-item flex-fill">
+                        <a class="nav-link p-3 fs-7" href="/" onclick="scrollSection('FAQ')">LogOut</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- Profile box with square shape -->
+      
+        </div>
+    </div>
+</nav>
+
+    <div class="chat-container">
+        <div class="info-section">
+            <h3>Welcome to Alumni Chat</h3>
+            <p>Connect with fellow alumni and share your experiences!</p>
+        </div>
+
+        <h3 style='color: #ccc;font-size: 30px;'>No messages yet...</h3>
+        <div class="message-holder">
+            <div id="previous-chats" style="color: #333; font-weight: bold; display: none;">Previously asked questiosn
+                and answers..</div>
+
+        </div>
+
+        <form action="" method="POST">
+            <input type="text" class="username" placeholder="Your Name" required />
+            <input type="text" class="message" placeholder="Type your message" required />
+            <input type="submit" value="Send" />
+        </form>
+    </div>
+    <!----------------------chatbot----------------->
+    <div class="chatbox">
+        <div class="chatbox__support">
+            <div class="chatbox__header">
+                <div class="chatbox__content--header">
+                    <h4 class="chatbox__heading--header">Chat support</h4>
+                </div>
+            </div>
+            <div class="chatbox__messages" id="chatbox_messages">
+            </div>
+            <div class="chatbox__footer">
+                <input type="text" id="user_input" placeholder="Write a message...">
+                <button onclick="sendMessage()" class="chatbox__send--footer"> <i class="fas fa-location-arrow"></i>
+                </button>
+
+            </div>
+        </div>
+        <div class="chatbox__button">
+            <button>button</button>
+        </div>
+    </div>
+
+
+
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
+    <script src="/static/js/jquery-2.1.3.js"></script>
+    <script type="text/javascript">
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        socket.on('connect', function () {
+            socket.emit('my event', {
+                data: 'User Connected'
+            })
+            var form = $('form').on('submit', function (e) {
+                e.preventDefault()
+                let user_name = $('input.username').val()
+                let user_input = $('input.message').val()
+                socket.emit('my event', {
+                    user_name: user_name,
+                    message: user_input
+                })
+                $('input.username').val('').focus()
+
+                $('input.message').val('').focus()
+            })
+        })
+        socket.on('my response', function (msg) {
+            console.log(msg)
+            if (typeof msg.user_name !== 'undefined') {
+                $('h3').remove()
+                $('div.message-holder').append('<div><b style="color: #000">' + msg.user_name + '</b> ' + msg.message + '</div>')
+                // Check if there are no previous chats, and display "Previous Chats" div
+                if ($('#previous-chats').is(':hidden')) {
+                    $('#previous-chats').show();
+                }
+
+                // Append the new message
+                $('div.message-holder').append(messageDiv)
+            }
+        })
+
+        function scrollSection(targetId) {
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                window.scrollTo({
+                    top: targetSection.offsetTop,
+                    behavior: 'smooth'
+                });
+
+                const navLinks = document.querySelectorAll('.nav-link');
+                navLinks.forEach((link) => {
+                    link.classList.remove('active');
+                });
+
+                const clickedLink = document.querySelector(`[data-target="${targetId}"]`);
+                if (clickedLink) {
+                    clickedLink.classList.add('active');
+                }
+            }
+        }
+
+        function sendMessage() {
+            var userMessage = document.getElementById('user_input').value;
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/chatbot', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var response = xhr.responseText;
+                    var chatbox = document.getElementById('chatbox_messages');
+
+                    // Create new message elements
+                    var userMessageElement = document.createElement('div');
+                    userMessageElement.className = 'messages__item messages__item--visitor';
+                    userMessageElement.textContent = userMessage;
+
+                    var chatbotMessageElement = document.createElement('div');
+                    chatbotMessageElement.className = 'messages__item messages__item--operator';
+                    chatbotMessageElement.textContent = response;
+
+                    // Insert new message elements at the top of the chatbox
+                    chatbox.insertBefore(userMessageElement, chatbox.firstChild);
+
+                    chatbox.insertBefore(chatbotMessageElement, chatbox.firstChild);
+                }
+            };
+            xhr.send('message=' + userMessage);
+            // Clear the input field
+            document.getElementById('user_input').value = '';
+        }
+
+    </script>
+
+    <script src="/static/assets/js/Chat.js"></script>
+    <script src="/static/app.js"></script>
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>
